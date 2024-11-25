@@ -17,10 +17,39 @@ function displayProducts(products) {
     // Create the product picture div
     const pictureDiv = document.createElement("div");
     pictureDiv.classList.add("product-picture");
+
+    // Create the product image element
     const img = document.createElement("img");
-    img.src = product.image;
+    img.loading = "lazy";
+    img.src = "placeholder.jpg";
+    img.dataset.src = product.image;
     img.alt = `product: ${product.title}`;
     img.width = 250;
+    img.height = 250;
+
+    // Image loading event handler
+    img.onload = () => {
+      img.classList.add("loaded");
+    };
+
+    // Image error handler
+    img.onerror = () => {
+      img.src = "fallback.jpg";
+      img.classList.add("error");
+    };
+
+    // Intersection Observer to load the actual image when it enters the viewport
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const img = entry.target;
+          img.src = img.dataset.src;
+          observer.unobserve(img);
+        }
+      });
+    });
+
+    observer.observe(img);
     pictureDiv.appendChild(img);
 
     // Create the product info div
