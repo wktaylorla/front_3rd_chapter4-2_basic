@@ -5,6 +5,17 @@ async function loadProducts() {
 }
 
 function displayProducts(products) {
+  const imageObserver = new IntersectionObserver((entries, observer) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        const img = entry.target;
+        img.src = img.dataset.src;
+        img.classList.add("loaded");
+        observer.unobserve(img);
+      }
+    });
+  });
+
   // Find the container where products will be displayed
   const container = document.querySelector("#all-products .container");
 
@@ -18,39 +29,22 @@ function displayProducts(products) {
     const pictureDiv = document.createElement("div");
     pictureDiv.classList.add("product-picture");
 
-    // Create the product image element
     const img = document.createElement("img");
-    img.loading = "lazy";
-    img.src = "placeholder.jpg";
-    img.dataset.src = product.image;
+    img.classList.add("lazy");
+    // 1. Base64 블러 플레이스홀더 사용
+    img.src =
+      'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 250"%3E%3Crect width="250" height="250" fill="%23f0f0f0"/%3E%3C/svg%3E';
+    // 또는
+    // 2. CSS background로 대체
+    img.style.backgroundColor = "#f0f0f0";
+
+    img.dataset.src = product.image; // 실제 이미지 URL
     img.alt = `product: ${product.title}`;
     img.width = 250;
-    img.height = 250;
+    img.loading = "lazy";
 
-    // Image loading event handler
-    img.onload = () => {
-      img.classList.add("loaded");
-    };
-
-    // Image error handler
-    img.onerror = () => {
-      img.src = "fallback.jpg";
-      img.classList.add("error");
-    };
-
-    // Intersection Observer to load the actual image when it enters the viewport
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          const img = entry.target;
-          img.src = img.dataset.src;
-          observer.unobserve(img);
-        }
-      });
-    });
-
-    observer.observe(img);
     pictureDiv.appendChild(img);
+    imageObserver.observe(img);
 
     // Create the product info div
     const infoDiv = document.createElement("div");
