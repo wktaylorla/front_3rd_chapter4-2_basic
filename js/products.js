@@ -61,7 +61,18 @@ function displayProducts(products) {
 
 loadProducts();
 
-// Simulate heavy operation. It could be a complex price calculation.
-for (let i = 0; i < 10000000; i++) {
-  const temp = Math.sqrt(i) * Math.sqrt(i);
+// 청크 단위로 무거운 연산 처리
+function processChunk(start, end) {
+  for (let i = start; i < end; i++) {
+    const temp = Math.sqrt(i) * Math.sqrt(i);
+  }
+
+  if (end < 10000000) {
+    setTimeout(() => {
+      processChunk(end, Math.min(end + 1000, 10000000));
+    }, 0);
+  }
 }
+
+// 1000개 단위로 처리 시작
+processChunk(0, 1000);
