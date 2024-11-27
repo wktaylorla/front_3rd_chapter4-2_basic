@@ -166,8 +166,18 @@ section.hero img.desktop {
 
 .product-picture {
   position: relative;
-  aspect-ratio: 1; /* 또는 실제 이미지 비율에 맞게 조정 */
+  aspect-ratio: 1;
   background-color: #f0f0f0;
+  overflow: hidden;
+}
+
+.product-picture img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .lazy {
@@ -192,10 +202,20 @@ section.country-bar {
   flex-direction: column;
   height: 60px;
   background-color: #f2f2f2;
+  min-height: 60px;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 section.country-bar.hidden {
-  display: none;
+  visibility: hidden;
+  opacity: 0;
+}
+
+section.country-bar:not(.hidden) {
+  visibility: visible;
+  opacity: 1;
 }
 
 section.best-sellers {
