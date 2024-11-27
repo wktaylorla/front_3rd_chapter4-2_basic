@@ -667,6 +667,10 @@ footer .copyright-text {
     margin: auto;
   }
 
+  .hero img {
+    will-change: transform; /* GPU 가속 활성화 */
+    contain: layout paint; /* 페인트 영역 제한 */
+  }
   section.best-sellers {
     padding-top: 64px;
   }
