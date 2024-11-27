@@ -1,47 +1,19 @@
 async function loadProducts() {
-  try {
-    const container = document.querySelector("#all-products .container");
-    container.innerHTML = '<div class="loading-skeleton"></div>';
+  const response = await fetch("https://fakestoreapi.com/products");
+  const products = await response.json();
 
-    const preloadLink = document.createElement("link");
-    preloadLink.rel = "preload";
-    preloadLink.as = "image";
-    preloadLink.href = "https://fakestoreapi.com/img/first-product.jpg";
-    document.head.appendChild(preloadLink);
+  // 첫 번째 제품 이미지 미리 로드
+  const preloadLink = document.createElement("link");
+  preloadLink.rel = "preload";
+  preloadLink.as = "image";
+  preloadLink.href = products[0].image;
+  document.head.appendChild(preloadLink);
 
-    const response = await fetch("https://fakestoreapi.com/products", {
-      priority: "high",
-    });
-    const products = await response.json();
-
-    const firstBatchProducts = products.slice(0, 4);
-    displayProducts(firstBatchProducts, true);
-
-    setTimeout(() => {
-      displayProducts(products.slice(4), false);
-    }, 0);
-  } catch (error) {
-    console.error("Failed to load products:", error);
-  }
+  displayProducts(products);
 }
 
-function displayProducts(products, isFirstBatch = false) {
-  const imageObserver = new IntersectionObserver((entries, observer) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        const img = entry.target;
-        img.src = img.dataset.src;
-        img.classList.add("loaded");
-        observer.unobserve(img);
-      }
-    });
-  });
-
+function displayProducts(products) {
   const container = document.querySelector("#all-products .container");
-
-  if (isFirstBatch) {
-    container.innerHTML = "";
-  }
 
   products.forEach((product, index) => {
     const productElement = document.createElement("div");
@@ -51,23 +23,27 @@ function displayProducts(products, isFirstBatch = false) {
     pictureDiv.classList.add("product-picture");
 
     const img = document.createElement("img");
-    img.classList.add("lazy");
 
-    if (isFirstBatch && index === 0) {
+    // 첫 번째 이미지만 즉시 로드, 나머지는 지연 로드
+    if (index === 0) {
+      img.src = product.image;
       img.fetchPriority = "high";
-      img.loading = "eager";
     } else {
       img.loading = "lazy";
+      img.src =
+        'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 250"%3E%3Crect width="250" height="250" fill="%23f0f0f0"/%3E%3C/svg%3E';
+      img.dataset.src = product.image;
     }
 
-    img.src =
-      'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 250"%3E%3Crect width="250" height="250" fill="%23f0f0f0"/%3E%3C/svg%3E';
-    img.dataset.src = product.image;
     img.alt = `product: ${product.title}`;
     img.width = 250;
 
     pictureDiv.appendChild(img);
-    imageObserver.observe(img);
+
+    // 첫 번째 이미지가 아닌 경우에만 Intersection Observer 적용
+    if (index !== 0) {
+      imageObserver.observe(img);
+    }
 
     const infoDiv = document.createElement("div");
     infoDiv.classList.add("product-info");
