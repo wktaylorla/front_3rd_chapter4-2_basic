@@ -5,70 +5,25 @@ async function loadProducts() {
 }
 
 function displayProducts(products) {
-  const imageObserver = new IntersectionObserver((entries, observer) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        const img = entry.target;
-        updateSourcesAndImage(img);
-        img.classList.add("loaded");
-        observer.unobserve(img);
-      }
-    });
-  });
-
+  // Find the container where products will be displayed
   const container = document.querySelector("#all-products .container");
 
+  // Iterate over each product and create the HTML structure safely
   products.forEach((product) => {
+    // Create the main product div
     const productElement = document.createElement("div");
     productElement.classList.add("product");
 
+    // Create the product picture div
     const pictureDiv = document.createElement("div");
     pictureDiv.classList.add("product-picture");
-
-    const picture = document.createElement("picture");
-
-    const avifSource = document.createElement("source");
-    avifSource.type = "image/avif";
-    avifSource.dataset.srcset = product.image.replace(
-      /\.(jpg|jpeg|png)$/i,
-      ".avif"
-    );
-
-    const webpSource = document.createElement("source");
-    webpSource.type = "image/webp";
-    webpSource.dataset.srcset = product.image.replace(
-      /\.(jpg|jpeg|png)$/i,
-      ".webp"
-    );
-
     const img = document.createElement("img");
-    img.classList.add("lazy");
-    img.src =
-      'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 250"%3E%3Crect width="250" height="250" fill="%23f0f0f0"/%3E%3C/svg%3E';
-    img.style.backgroundColor = "#f0f0f0";
-    img.dataset.src = product.image;
+    img.src = product.image;
     img.alt = `product: ${product.title}`;
     img.width = 250;
-    img.loading = "lazy";
+    pictureDiv.appendChild(img);
 
-    picture.appendChild(avifSource);
-    picture.appendChild(webpSource);
-    picture.appendChild(img);
-
-    pictureDiv.appendChild(picture);
-
-    imageObserver.observe(img);
-    const updateSourcesAndImage = (img) => {
-      const picture = img.closest("picture");
-      if (picture) {
-        const sources = picture.querySelectorAll("source");
-        sources.forEach((source) => {
-          source.srcset = source.dataset.srcset;
-        });
-      }
-      img.src = img.dataset.src;
-    };
-
+    // Create the product info div
     const infoDiv = document.createElement("div");
     infoDiv.classList.add("product-info");
 
@@ -89,14 +44,17 @@ function displayProducts(products) {
     const button = document.createElement("button");
     button.textContent = "Add to bag";
 
+    // Append elements to the product info div
     infoDiv.appendChild(category);
     infoDiv.appendChild(title);
     infoDiv.appendChild(price);
     infoDiv.appendChild(button);
 
+    // Append picture and info divs to the main product element
     productElement.appendChild(pictureDiv);
     productElement.appendChild(infoDiv);
 
+    // Append the new product element to the container
     container.appendChild(productElement);
   });
 }
