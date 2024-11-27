@@ -5,28 +5,40 @@ async function loadProducts() {
 }
 
 function displayProducts(products) {
-  // Find the container where products will be displayed
   const container = document.querySelector("#all-products .container");
 
-  // Iterate over each product and create the HTML structure safely
   products.forEach((product) => {
-    // Create the main product div
     const productElement = document.createElement("div");
     productElement.classList.add("product");
 
-    // Create the product picture div
     const pictureDiv = document.createElement("div");
     pictureDiv.classList.add("product-picture");
+
+    const picture = document.createElement("picture");
+
     const img = document.createElement("img");
-    img.src = product.image;
+    const optimizedImageUrl = new URL(product.image);
+    optimizedImageUrl.searchParams.set("size", "250");
+
+    img.src = optimizedImageUrl.toString();
     img.alt = `product: ${product.title}`;
     img.width = 250;
     img.height = 250;
     img.loading = "lazy";
     img.decoding = "async";
-    pictureDiv.appendChild(img);
 
-    // Create the product info div
+    img.onerror = () => {
+      img.style.backgroundColor = "#f0f0f0";
+      img.classList.add("error");
+    };
+
+    img.onload = () => {
+      img.classList.add("loaded");
+    };
+
+    picture.appendChild(img);
+    pictureDiv.appendChild(picture);
+
     const infoDiv = document.createElement("div");
     infoDiv.classList.add("product-info");
 
@@ -47,17 +59,14 @@ function displayProducts(products) {
     const button = document.createElement("button");
     button.textContent = "Add to bag";
 
-    // Append elements to the product info div
     infoDiv.appendChild(category);
     infoDiv.appendChild(title);
     infoDiv.appendChild(price);
     infoDiv.appendChild(button);
 
-    // Append picture and info divs to the main product element
     productElement.appendChild(pictureDiv);
     productElement.appendChild(infoDiv);
 
-    // Append the new product element to the container
     container.appendChild(productElement);
   });
 }
