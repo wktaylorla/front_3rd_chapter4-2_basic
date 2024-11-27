@@ -1,10 +1,31 @@
 async function loadProducts() {
-  const response = await fetch("https://fakestoreapi.com/products");
-  const products = await response.json();
-  displayProducts(products);
+  try {
+    const container = document.querySelector("#all-products .container");
+    container.innerHTML = '<div class="loading-skeleton"></div>';
+
+    const preloadLink = document.createElement("link");
+    preloadLink.rel = "preload";
+    preloadLink.as = "image";
+    preloadLink.href = "https://fakestoreapi.com/img/first-product.jpg";
+    document.head.appendChild(preloadLink);
+
+    const response = await fetch("https://fakestoreapi.com/products", {
+      priority: "high",
+    });
+    const products = await response.json();
+
+    const firstBatchProducts = products.slice(0, 4);
+    displayProducts(firstBatchProducts, true);
+
+    setTimeout(() => {
+      displayProducts(products.slice(4), false);
+    }, 0);
+  } catch (error) {
+    console.error("Failed to load products:", error);
+  }
 }
 
-function displayProducts(products) {
+function displayProducts(products, isFirstBatch = false) {
   const imageObserver = new IntersectionObserver((entries, observer) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
@@ -16,37 +37,38 @@ function displayProducts(products) {
     });
   });
 
-  // Find the container where products will be displayed
   const container = document.querySelector("#all-products .container");
 
-  // Iterate over each product and create the HTML structure safely
-  products.forEach((product) => {
-    // Create the main product div
+  if (isFirstBatch) {
+    container.innerHTML = "";
+  }
+
+  products.forEach((product, index) => {
     const productElement = document.createElement("div");
     productElement.classList.add("product");
 
-    // Create the product picture div
     const pictureDiv = document.createElement("div");
     pictureDiv.classList.add("product-picture");
 
     const img = document.createElement("img");
     img.classList.add("lazy");
-    // 1. Base64 블러 플레이스홀더 사용
+
+    if (isFirstBatch && index === 0) {
+      img.fetchPriority = "high";
+      img.loading = "eager";
+    } else {
+      img.loading = "lazy";
+    }
+
     img.src =
       'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 250"%3E%3Crect width="250" height="250" fill="%23f0f0f0"/%3E%3C/svg%3E';
-    // 또는
-    // 2. CSS background로 대체
-    img.style.backgroundColor = "#f0f0f0";
-
-    img.dataset.src = product.image; // 실제 이미지 URL
+    img.dataset.src = product.image;
     img.alt = `product: ${product.title}`;
     img.width = 250;
-    img.loading = "lazy";
 
     pictureDiv.appendChild(img);
     imageObserver.observe(img);
 
-    // Create the product info div
     const infoDiv = document.createElement("div");
     infoDiv.classList.add("product-info");
 
@@ -67,24 +89,20 @@ function displayProducts(products) {
     const button = document.createElement("button");
     button.textContent = "Add to bag";
 
-    // Append elements to the product info div
     infoDiv.appendChild(category);
     infoDiv.appendChild(title);
     infoDiv.appendChild(price);
     infoDiv.appendChild(button);
 
-    // Append picture and info divs to the main product element
     productElement.appendChild(pictureDiv);
     productElement.appendChild(infoDiv);
 
-    // Append the new product element to the container
     container.appendChild(productElement);
   });
 }
 
 loadProducts();
 
-// 청크 단위로 무거운 연산 처리
 function processChunk(start, end) {
   for (let i = start; i < end; i++) {
     const temp = Math.sqrt(i) * Math.sqrt(i);
@@ -97,5 +115,4 @@ function processChunk(start, end) {
   }
 }
 
-// 1000개 단위로 처리 시작
 processChunk(0, 1000);
